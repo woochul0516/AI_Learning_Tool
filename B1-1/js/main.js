@@ -5,6 +5,17 @@
 
 document.addEventListener('DOMContentLoaded', () => {
   // -------------------------------------------------------------
+  // 0. EmailJS 서비스 초기화 (본인의 Public Key를 입력하세요)
+  // -------------------------------------------------------------
+  const EMAILJS_PUBLIC_KEY = 'Y8ShiAGTPQfo1BJUj'; // EmailJS에서 발급받은 Public Key
+  const EMAILJS_SERVICE_ID = 'service_gnviycc'; // EmailJS Service ID
+  const EMAILJS_TEMPLATE_ID = 'template_izxcc11'; // EmailJS Template ID
+
+  if (typeof emailjs !== 'undefined' && EMAILJS_PUBLIC_KEY !== 'YOUR_PUBLIC_KEY') {
+    emailjs.init(EMAILJS_PUBLIC_KEY);
+  }
+
+  // -------------------------------------------------------------
   // 1. 상태 객체 (State Management)
   // -------------------------------------------------------------
   const state = {
@@ -16,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
     formErrors: {}
   };
 
-  // GitHub 사용자 ID 설정 (본인 ID로 변경 가능)
+  // GitHub 사용자 ID 설정
   const GITHUB_USERNAME = 'woochul0516';
 
   // -------------------------------------------------------------
@@ -110,10 +121,9 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // 필터링 적용 (array.filter)
+    // 필터링 적용 (array.filter 사용)
     const filteredRepos = state.repos.filter(repo => {
       if (state.filter === 'all') return true;
-      if (state.filter === 'HTML') return repo.language === 'HTML' || repo.language === 'CSS';
       return repo.language === state.filter;
     });
 
@@ -256,7 +266,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // 폼 제출 이벤트
+  // 폼 제출 이벤트 (EmailJS 실제 전송 적용)
   contactForm.addEventListener('submit', (e) => {
     e.preventDefault();
 
@@ -271,13 +281,45 @@ document.addEventListener('DOMContentLoaded', () => {
     renderFormErrors(errors);
 
     if (Object.keys(errors).length === 0) {
+      const submitBtn = contactForm.querySelector('.btn-submit');
       const successMsg = document.querySelector('#form-success');
-      successMsg.textContent = '성공적으로 메시지가 전송되었습니다!';
-      contactForm.reset();
       
-      setTimeout(() => {
-        successMsg.textContent = '';
-      }, 3000);
+      // 전송 중 상태 표시
+      submitBtn.disabled = true;
+      submitBtn.textContent = '전송 중...';
+
+      // EmailJS 설정을 적용하여 실제 이메일 발송
+      if (typeof emailjs !== 'undefined' && EMAILJS_PUBLIC_KEY !== 'YOUR_PUBLIC_KEY') {
+        emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+          name: formData.username,    // 템플릿의 {{name}}에 전달
+          email: formData.email,      // 템플릿의 {{email}}에 전달
+          message: formData.message   // 템플릿의 {{message}}에 전달
+        }).then(() => {
+          successMsg.textContent = '성공적으로 메시지가 전송되었습니다!';
+          contactForm.reset();
+        }).catch((err) => {
+          console.error('EmailJS Error:', err);
+          successMsg.textContent = '메시지 전송에 실패했습니다. 나중에 다시 시도해주세요.';
+        }).finally(() => {
+          submitBtn.disabled = false;
+          submitBtn.textContent = '보내기';
+          setTimeout(() => {
+            successMsg.textContent = '';
+          }, 3000);
+        });
+      } else {
+        // EmailJS 키를 아직 설정하지 않은 경우 (시뮬레이션 동작)
+        setTimeout(() => {
+          successMsg.textContent = '성공적으로 메시지가 전송되었습니다! (EmailJS 키 설정 필요)';
+          contactForm.reset();
+          submitBtn.disabled = false;
+          submitBtn.textContent = '보내기';
+          
+          setTimeout(() => {
+            successMsg.textContent = '';
+          }, 3000);
+        }, 1000);
+      }
     }
   });
 
