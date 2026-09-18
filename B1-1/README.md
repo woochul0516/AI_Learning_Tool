@@ -75,7 +75,7 @@ const state = {
 ├── css/
 │   └── style.css       # CSS 변수, 다크모드, Flex/Grid 및 반응형 스타일
 └── js/
-└── main.js         # 상태 관리, DOM 이벤트, API 연동, EmailJS 핵심 로직
+    └── main.js         # 상태 관리, DOM 이벤트, API 연동, EmailJS 핵심 로직
 ```
 
 
