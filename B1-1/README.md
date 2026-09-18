@@ -1,9 +1,9 @@
-## Portfolio Web Application
+## 나를 소개하는 웹페이지 처음부터 만들기
 - JS / Web Development 과제 요구사항을 완벽히 준수하여 순수 바닐라 자바스크립트(ES6+)와 최신 웹 표준 기술만으로 제작한 반응형 개인 포트폴리오 웹사이트입니다.
 - 외부 프레임워크(React 등) 없이 "사용자 이벤트 → 상태 변경(State) → DOM 렌더링" 흐름을 단일 상태 객체 기반으로 명확하게 추상화하여 구현했습니다.
 
 ### 배포 링크 및 개요
-- 배포 URL: [https://woochul0516.github.io/AI_Learning_Tool/tree/main/B1-1]
+- 배포 URL: [https://woochul0516.github.io/Portfolio_Web/]
 - GitHub 저장소: [https://github.com/woochul0516/AI_Learning_Tool/tree/main/B1-1]
 
 ### 사용 기술 및 개발 환경 (Tech Stack)
