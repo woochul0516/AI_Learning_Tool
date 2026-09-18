@@ -80,8 +80,12 @@ const state = {
 
 
 ### 프로젝트 실행 화면 (Screenshots)
-(GitHub 저장소의 images/ 폴더에 스크린샷을 업로드하신 후 경로를 연결해주세요)
-데스크톱 화면모바일 & 햄버거 메뉴다크 모드![Desktop](images/desktop.png)![Mobile](images/mobile.png)![DarkMode](images/darkmode.png)
+| 화면 구분 | 설명 | 이미지 |
+| :--- | :--- | :--- |
+| **데스크톱 (Desktop)** | 메인 화면 및 카드 레이아웃 | ![Desktop](images/desktop.png) |
+| **모바일 & 햄버거 메뉴** | 반응형 모바일 메뉴 동작 화면 | ![Mobile](images/mobile.png) |
+| **다크 모드 (Dark Mode)** | 다크 테마 적용 화면 | ![DarkMode](images/darkmode.png) |
+| **이메일 수신 (Contact Mail)** | EmailJS를 통해 실제 수신된 문의 메일 | ![ContactEmail](images/email.png) |
 
 ### 학습 및 성찰 (Mission Takeaways)
 - 시맨틱 마크업의 이유: `header`, `main`, `article`, `section` 등의 시맨틱 태그를 명확히 구분하여 작성함으로써 웹 접근성(A11y) 향상과 검색엔진 최적화(SEO)의 중요성을 체득했습니다.
