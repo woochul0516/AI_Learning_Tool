@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.documentElement.setAttribute('data-theme', state.theme);
     updateThemeIcon();
   };
-
+  // localStorage에 저장된 테마를 불러와 적용하고, 아이콘 업데이트
   const toggleTheme = () => {
     state.theme = state.theme === 'light' ? 'dark' : 'light';
     localStorage.setItem('theme', state.theme);
@@ -250,7 +250,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // 스크롤 탑 이동
+  // 스크롤 탑 이동, #scroll-top 버튼 클릭 시 부드럽게 스크롤
   scrollTopBtn.addEventListener('click', () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
@@ -275,7 +275,7 @@ document.addEventListener('DOMContentLoaded', () => {
       email: contactForm.email.value,
       message: contactForm.message.value
     };
-
+    // email-error, name-error, message-error span에 에러 메시지 표시
     const errors = validateForm(formData);
     state.formErrors = errors;
     renderFormErrors(errors);

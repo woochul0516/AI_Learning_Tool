@@ -35,17 +35,26 @@ const state = {
 - 폼 유효성 검사: 제출 → `state.formErrors` 업데이트 → 에러 메시지 DOM 반영
 
 2. 시맨틱 HTML & CSS 레이아웃
-`<header>`, `<nav>`, `<main>`, `<section>`, `<article>`, `<footer>` 시맨틱 태그만을 사용하여 구조를 설계했습니다.
+index.html을 보면 전체를 `<div>`로 도배하지 않고, 상단은 `<header>`와 `<nav>`, 본문은 `<main>`, 각 구역은 `<section id="about">`, `<section id="projects">`, 하단은 `<footer>`로 작성
 
 - Flexbox & Grid 조합:
-    - `Navigation` & `Header`: `Flexbox` 적용 (`.nav-container`, `.header-actions`, `.nav-list`)으로 1차원 요소 배치 및 정렬
-    - Projects & Skills Section: `CSS Grid` 기반의 반응형 카드 레이아웃 `(grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)), minmax(280px, 1fr))`
-- CSS Custom Properties (:root) & 다크 모드:
-    - `--bg-primary`, `--bg-secondary`, `--bg-card`, `--text-primary`, `--accent-color` 등 CSS 변수를 선언
-    - `[data-theme="dark"]` 선택자를 이용한 테마 스위칭 및 transition 효과 적용
-- 모바일 퍼스트 반응형 디자인:
-    - 미디어 쿼리 브레이크포인트 (768px, 1024px) 설정
-    - `#hamburger` 클릭 시 `.nav-menu.active` 토글을 통한 모바일 드로어 메뉴 구현 (768px 이상에서는 `Desktop Nav` 자동 전환)
+    - Flexbox (`css/style.css` 140줄): `.nav-container`에 `display: flex; justify-content: space-between;`을 써서 로고는 왼쪽, 메뉴는 오른쪽에 1차원(한 줄) 정렬.
+    - Grid (`css/style.css` 330줄): `.projects-grid`에 `display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));`를 써서 프로젝트 카드가 화면 크기에 맞춰 2차원(바둑판) 배치.
+- CSS 변수(`:root`):
+    - `css/style.css` 11줄: `:root`에 `--accent-color: #4f46e5;`와 테마 색상들을 미리 변수로 선언. 다크모드(`[data-theme="dark"]`)가 될 때 이 변수 값만 바꿔주면 사이트 전체 색상이 일괄 변경.
+- `onclick` 대신 `addEventListner`를 쓴 이유
+    - `index.html` 태그 안에 `onclick="..."`을 넣지 않고, `js/main.js` 하단(224줄)처럼 `themeToggleBtn.addEventListener('click', toggleTheme)` 방식으로 바인딩. HTML과 JS 코드가 서로 깔끔하게 분리
+- API 성공/실패 분기(`async/await` & `try/catch`)
+    - `js/main.js` 74줄 (`fetchGitHubRepos` 함수):
+        - `try` 문 안에서 `await fetch(...)`로 GitHub 데이터를 기다립니다. 만약 응답(`response.ok`)에 문제가 있거나 403 에러(요청 제한)가 나면 `throw new Error()`를 던집니다.
+        - 에러가 발생하면 곧바로 `catch (err)` 문으로 이동하여 `state.error`에 에러 문구를 담고 `renderProjects()`를 불러 에러 화면을 띄웁니다.
+- 배열 메서드(`filter`, `map`)의 활용
+    - `js/main.js` 124~128줄:
+        - `filter()`: `state.repos.filter(repo => repo.language === state.filter)`로 내가 선택한 버튼 언어(Python, JS 등)만 걸러냄.
+        - `map()`: 걸러낸 데이터에서 `{ name, description, html_url, stargazers_count, language }`를 추출하여 HTML 카드 문맥(`project-card`)으로 바꾼 뒤 화면에 뿌려줌.
+- 모바일 퍼스트로 작성한 이유:
+    - `css/style.css`: 기본 스타일을 모바일 화면 크기 기준으로 먼저 작성, 아래쪽에 `@media (min-width: 768px)`로 큰 화면용 스타일을 덧붙임
+    - 작은 화면(모바일)의 필수 요소부터 안전하게 완성한 뒤 넓은 화면으로 확장하는 것이 디자인 구조를 단순하고 튼튼하게 유지해 주기 때문
 
 3. GitHub REST API 연동 및 상태별 UI
 - async/await 및 fetch를 활용하여 https://api.github.com/users/woochul0516/repos?sort=updated&per_page=10 데이터를 수신하고 API 403 Rate Limit 예외 처리 및 try...catch 에러 핸들링을 적용했습니다.

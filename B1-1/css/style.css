@@ -491,7 +491,7 @@ a {
 /* ================================
    4. Responsive Breakpoints
 ================================ */
-/* Tablet (768px 이상) */
+/* Tablet (768px 이상), 브라우저 크기 조절 */
 @media (min-width: 768px) {
   .hamburger {
     display: none;
