@@ -2,7 +2,7 @@
    1. CSS Variables & Theme Setup
 ================================ */
 :root {
-  /* Colors - Light Theme Default */
+  /* 다크모드가 될 때 변수값만 바꿔주면 사이트 전체 색상이 일괄 변경 */
   --bg-primary: #ffffff;
   --bg-secondary: #f8f9fa;
   --bg-card: #ffffff;
