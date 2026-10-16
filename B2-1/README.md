@@ -143,6 +143,14 @@ B2-1/
 
 ## 6. 실습 스크린샷
 
+| 기능 구분 | 스크린샷 예시 |
+| :--- | :--- |
+| **거래 추가 (add)** | ![거래 추가](images/add.png) |
+| **목록 조회 (list)** | ![목록 조회](images/list.png) |
+| **월별 요약 (summary)** | ![월별 요약](images/summary.png) |
+| **데이터 백업 (backup)** | ![데이터 백업](images/backup.png) ![백업 경로](images/backup2.png) |
+| **오류 예외 힌트 (Error Handling)** | ![오류 예외 힌트](images/error.png) |
+
 ## 7. 주요 모듈 및 클래스 설계 (Architecture & Responsibilities)
 1. `Transaction`, `Budget`, `RecurringRule` (`models.py`)
     - 역할: 거래 내역, 예산, 반복 규칙 데이터를 표현하는 dataclass. 입력 데이터 유효성을 `validate() `메서드로 검증합니다.
