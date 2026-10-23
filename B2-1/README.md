@@ -237,77 +237,25 @@ xychart-beta
     - Import CSV 스키마 불일치: CSV 파일의 개별 레코드 검증 실패 시 오류 줄을 건너뛰고(`skipped`), 정상 데이터만 보완 등록(`imported`)하여 가용성 유지.
 
 ## 12. 평가항목
-1. 가계부 CRUD, 검색, 요약 및 CSV 입출력
-    - `budget_app/service.py` `15~31행`: 거래를 생성하고 저장소에 추가합니다.
-    - `budget_app/service.py` `33~66행`: 거래 목록과 조건에 맞는 검색 결과를 반환합니다.
-    - `budget_app/service.py` `68~97행`: 월별 수입·지출·잔액과 지출 상위 카테고리를 계산합니다.
-    - `budget_app/service.py` `128~175행`: 거래 정보를 수정하거나 삭제합니다.
-    - `budget_app/service.py` `177~226행`: CSV 파일을 내보내고 가져옵니다.
-    - `budget_app/cli.py` `86~212행`: 각 기능을 명령줄 명령과 연결합니다.
+#### 항목 1: 기능과 예외 처리
+- `budget_app/cli.py` `14~78행`, `86~212행` 및 `budget_app/service.py` `15~226행`: 거래 추가·조회·검색·수정·삭제, 월별 요약, CSV 입출력과 예산·카테고리 명령을 처리합니다.
+- `budget_app/repository.py` `15~19행`, `62~68행`, `97~103행`: 거래·카테고리·예산을 별도 JSONL 파일에 저장해 재실행 후에도 데이터를 유지합니다.
+- `budget_app/service.py` `110~126행`: 사용 중인 카테고리는 대체 카테고리로 거래를 변경한 뒤 삭제합니다. 삭제 단계가 실패하면 거래 변경은 유지되고 기존 카테고리는 남으므로, 사용하지 않는 카테고리를 다시 삭제하면 됩니다.
+- `budget_app/service.py` `99~103행` 및 `budget_app/cli.py` `125~144행`: 예산을 저장하고 요약에서 사용률과 초과 금액을 출력합니다.
+- `budget_app/service.py` `177~226행`: UTF-8 CSV의 `date/type/category/amount/memo/tags` 컬럼으로 데이터를 가져오고 내보냅니다.
+- `budget_app/decorators.py` `6~23행`: 오류 원인과 힌트를 출력하고 실패 시 종료 코드 `1`을 반환합니다. 정상 종료 시 기본 종료 코드는 `0`입니다.
 
-2. JSONL 파일 분리 및 영구 저장
-    - `budget_app/repository.py` `15~19행`, `62~68행`, `97~103행`: 카테고리·예산·거래를 각각 별도 JSONL 파일에 저장합니다.
-    - `budget_app/repository.py` `124~127행`: 새 거래를 파일 끝에 추가하여 프로그램 재실행 후에도 유지합니다.
+#### 항목 2: 모듈과 클래스의 역할
+- `budget_app/cli.py` `11~85행`: 사용자 명령을 처리합니다. `budget_app/service.py` `9~13행`: 가계부 규칙을 처리합니다. `budget_app/repository.py` `9~147행`: 파일을 읽고 씁니다. `budget_app/models.py` `8~50행`: 데이터 구조와 검증을 담당합니다.
+- `budget_app/models.py` `8~28행`의 `Transaction`은 거래 정보를, `30~41행`의 `Budget`은 예산 정보를 표현하고 각각 입력값을 검증합니다.
+- `budget_app/service.py` `128~175행` 및 `budget_app/repository.py` `129~135행`: 수정·삭제 시 임시 파일에 새 내용을 쓴 뒤 `os.replace`로 교체해 기존 파일이 중간에 손상되는 것을 줄입니다.
 
-3. 사용 중인 카테고리 삭제와 대체 처리
-    - `budget_app/service.py` `110~126행`: 사용 중인 카테고리의 삭제를 확인하고, 지정된 대체 카테고리로 거래를 변경한 뒤 삭제합니다.
-    - 거래 파일 저장에 실패하면 임시 파일 교체 전의 기존 거래 파일이 유지됩니다. 카테고리 삭제 단계에서 실패하면 거래는 대체 카테고리로 변경된 상태이고 기존 카테고리는 남으므로, `python3 -m budget_app category remove --name food` 명령을 다시 실행해 사용되지 않는 기존 카테고리를 삭제할 수 있습니다.
+#### 항목 3: 스트리밍, 데코레이터, 타입 힌트
+- `budget_app/repository.py` `105~122행`: `stream_all()`은 거래를 한 줄씩 읽습니다. 하지만 목록은 정렬을 위해 전체 데이터를, 검색은 결과를 리스트에 저장합니다(`budget_app/service.py` `33~66행`).
+- `budget_app/decorators.py` `6~34행` 및 `budget_app/cli.py` `8~10행`: 오류 처리와 실행 시간 계산을 데코레이터로 분리해 공통 기능을 재사용합니다. 현재 실행 시간은 계산만 하고 출력하지 않습니다.
+- `budget_app/repository.py` `105~135행`: 타입 힌트로 함수가 어떤 데이터를 반환하는지 표시합니다. 예를 들어 `stream_all()`은 `Transaction` 객체를 차례로 전달한다고 알 수 있습니다.
 
-4. 예산 초과 경고
-    - `budget_app/cli.py` `135~140행`: 월 지출과 예산을 비교해 사용률 및 초과 금액을 콘솔에 표시합니다.
-
-5. CSV 내보내기 스키마
-    - `budget_app/service.py` `191~198행`: UTF-8 CSV 파일에 고정 헤더와 거래 데이터를 기록합니다.
-    - `README.md` `184~193행`: CSV 각 열의 이름, 필수 여부, 자료 형식을 설명합니다.
-
-6. 오류 메시지와 입력 힌트
-    - `budget_app/decorators.py` `6~23행`: 예외를 처리하고 원인 및 해결 힌트를 출력한 뒤 실패 종료 코드로 종료합니다.
-    - `budget_app/models.py` `18~28행`: 거래 날짜·유형·금액의 유효성을 검사합니다.
-
-7. 정상 및 비정상 종료 코드
-    - `budget_app/decorators.py` `12~23행`: 처리한 예외는 `sys.exit(1)`로 비정상 종료를 알립니다.
-    - `budget_app/__main__.py` `1~4행`: CLI 진입점입니다. 예외 없이 정상 반환하면 파이썬은 종료 코드 `0`을 반환합니다.
-
-8. 모듈 간 역할 분리
-    - `budget_app/cli.py` `84~85행`: CLI가 서비스 객체를 생성해 명령을 처리합니다.
-    - `budget_app/service.py` `9~13행`: 서비스가 저장소를 사용해 비즈니스 로직을 처리합니다.
-    - `budget_app/repository.py` `105~127행`: 저장소가 JSONL 파일을 읽고 씁니다.
-    - `budget_app/models.py` `8~50행`: 거래·예산·반복 규칙 데이터의 구조를 정의합니다.
-
-9. 데이터 모델과 검증 흐름
-    - `budget_app/models.py` `8~28행`: `Transaction`이 거래 데이터를 표현하고 날짜·유형·금액을 검증합니다.
-    - `budget_app/models.py` `30~41행`: `Budget`이 월 예산 데이터를 표현하고 월 형식과 금액을 검증합니다.
-    - `budget_app/models.py` `43~50행`: `RecurringRule`이 반복 거래 규칙의 데이터 구조를 정의합니다.
-    - `budget_app/repository.py` `124~127행` 및 `budget_app/service.py` `99~103행`: 거래 저장 전과 예산 저장 전에 각각 검증을 수행합니다.
-
-10. 임시 파일과 원자적 교체
-    - `budget_app/repository.py` `129~135행`: 새 거래 파일을 임시 파일에 쓴 뒤 `os.replace`로 교체합니다.
-    - `budget_app/repository.py` `37~43행`: 카테고리 파일도 같은 방식으로 저장합니다.
-    - 임시 파일 작성 또는 교체가 실패하면 사용자에게 복구 위치를 안내하는 별도 처리는 구현되어 있지 않습니다.
-
-11. 제너레이터 기반 스트리밍
-    - `budget_app/repository.py` `105~122행`: `stream_all()`이 거래 파일을 한 줄씩 읽어 제너레이터로 전달합니다.
-    - `budget_app/service.py` `33~38행` 및 `40~66행`: 목록 정렬과 검색 결과 생성을 위해 거래를 리스트에 모읍니다.
-
-12. 데코레이터를 통한 공통 기능 처리
-    - `budget_app/cli.py` `8~10행`: `main()`에 예외 처리와 시간 측정 데코레이터를 적용합니다.
-    - `budget_app/decorators.py` `6~24행`: 사용자 오류 안내 및 종료를 처리합니다.
-    - `budget_app/decorators.py` `26~34행`: 함수 실행 시간을 계산합니다. 현재 실행 시간은 출력하거나 로그로 저장하지 않습니다.
-
-13. 타입 힌트 적용
-    - `budget_app/service.py` `15~48행` 및 `budget_app/repository.py` `105~135행`: 서비스·저장소 함수의 매개변수와 반환값 형식을 표시합니다.
-    - `budget_app/cli.py` `10행`: `main()`의 반환 타입을 표시합니다.
-
-14. JSONL과 CSV 저장 포맷 비교
-    - `budget_app/repository.py` `105~127행`: JSONL을 한 줄씩 읽고 쓸 수 있어 내부 저장 및 스트리밍 처리에 적합합니다.
-    - `budget_app/service.py` `177~226행`: CSV는 표 계산 프로그램과 호환되어 가져오기·내보내기에 적합합니다.
-    - JSONL은 행 단위 처리가 쉽고, CSV는 사람이 표로 확인하기 쉽습니다. 반면 CSV는 열 구조가 고정되어 있어 필드 검증이 필요하며, JSONL은 스프레드시트에서 바로 편집하기 어렵습니다.
-
-15. 대용량 처리와 성능 측정
-    - `budget_app/repository.py` `105~122행`: 거래를 한 줄씩 읽어 파일 전체를 한 번에 메모리에 올리지 않습니다.
-    - `budget_app/service.py` `33~38행` 및 `49~66행`: 정렬·검색 결과를 위해 일부 기능에서는 전체 또는 검색 결과를 리스트에 저장합니다.
-    - `README.md` `208~227행`: 메모리 비교와 파일 교체 안정성 내용을 정리합니다. 디스크 I/O 속도나 CPU 사용량의 실측값은 포함하지 않습니다.
-
-16. CSV 가져오기 실패 행 처리
-    - `budget_app/service.py` `200~226행`: CSV 각 행을 검증하고 성공 건수(`imported`)와 건너뛴 건수(`skipped`)를 반환합니다.
-    - `budget_app/cli.py` `210~212행`: 가져오기 결과의 성공·실패 건수를 출력합니다. 실패한 행 번호와 원인을 기록하는 상세 리포트는 구현되어 있지 않습니다.
+#### 항목 4: 저장 포맷, 대용량 처리, CSV 오류
+- `budget_app/repository.py` `105~127행` 및 `budget_app/service.py` `177~226행`: JSONL은 한 줄씩 처리하기 좋아 내부 저장에 사용하고, CSV는 스프레드시트에서 열기 쉬워 데이터 교환에 사용합니다.
+- 거래가 10만 건이 되면 목록의 전체 데이터 로드와 정렬이 메모리·처리 시간의 병목이 될 수 있습니다(`budget_app/service.py` `33~38행`). 페이지 단위 조회나 정렬 방식 개선을 고려할 수 있습니다. 실제 성능 수치는 별도 측정이 필요합니다.
+- `budget_app/service.py` `200~226행` 및 `budget_app/cli.py` `210~212행`: CSV 가져오기는 잘못된 행을 건너뛰고 성공·실패 건수를 출력합니다. 전체 롤백이나 실패 행별 상세 리포트는 구현되어 있지 않습니다.
